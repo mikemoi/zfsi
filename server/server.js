@@ -19,9 +19,12 @@ if (process.env.STATIC_DIR) {
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const expectedToken = () => sha((process.env.APP_PIN || '') + '::' + (process.env.AUTH_SECRET || ''));
 
+// 只有这些 API 数据接口需要 token；静态前端 + /health + /auth 放行
+const PROTECTED = new Set(['/session', '/attempts', '/stats', '/judge', '/generate', '/stt', '/tts']);
 app.addHook('preHandler', async (req, reply) => {
   if (req.method === 'OPTIONS') return;
-  if (req.url === '/health' || req.url === '/auth') return;
+  const path = req.url.split('?')[0];
+  if (!PROTECTED.has(path)) return;
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (token !== expectedToken()) return reply.code(401).send({ error: 'unauthorized' });
