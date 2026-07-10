@@ -1,0 +1,15 @@
+# deps
+node_modules/
+
+# secrets / local env
+.env
+.env.local
+server/.env
+
+# logs / os
+*.log
+.DS_Store
+Thumbs.db
+
+# local harness config
+.claude/settings.local.json

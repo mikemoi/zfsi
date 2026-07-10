@@ -1,0 +1,15 @@
+{
+  "name": "西语 Drill —— FSI Pattern Drill",
+  "short_name": "西语 Drill",
+  "description": "FSI 句型操练：闪认块 / 替换 / 扩展 / 转换 / 回应，SM-2 间隔复习",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f6f4",
+  "theme_color": "#1f6f5c",
+  "lang": "zh",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

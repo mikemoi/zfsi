@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1f6f5c"/>
+  <path d="M136 168h240a28 28 0 0 1 28 28v120a28 28 0 0 1-28 28H236l-72 56v-56h-28a28 28 0 0 1-28-28V196a28 28 0 0 1 28-28z" fill="#e4f1ec"/>
+  <text x="256" y="292" font-family="Georgia, 'Times New Roman', serif" font-size="120" font-weight="700" fill="#1f6f5c" text-anchor="middle">ñ</text>
+</svg>
