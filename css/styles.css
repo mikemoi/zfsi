@@ -77,6 +77,30 @@ body {
 }
 .chip.active { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 600; }
 
+/* 阶梯 */
+.ladder { width: 100%; max-width: 640px; margin-bottom: 6px; }
+.ladder-cap { font-size: 12px; color: var(--muted); padding: 2px 4px 8px; }
+.typeswitch { padding: 0 0 14px; gap: 6px; }
+.step {
+  flex: 1 1 0; min-width: 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 6px; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  cursor: pointer; transition: .15s; position: relative;
+}
+.step-n {
+  flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; background: var(--line); color: var(--muted);
+}
+.step-name { font-size: 13px; white-space: nowrap; }
+.step.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.step.active .step-n { background: var(--accent); color: #fff; }
+.step.done { color: var(--ok); }
+.step.done .step-n { background: var(--ok); color: #fff; }
+.step.done .step-n::after { content: '✓'; font-size: 11px; }
+.step.done .step-n { font-size: 0; }
+
 .card {
   width: 100%; max-width: 640px;
   background: var(--card); border: 1px solid var(--line);

@@ -176,13 +176,13 @@ const App = (() => {
     nextQuestion();
   }
 
-  // 手动选题型
+  // 阶梯步骤（可点击直接跳到某关）
   function buildTypeSwitch() {
     el.typeSwitch.innerHTML = '';
     DRILL_ORDER.forEach((type, i) => {
       const b = document.createElement('button');
-      b.textContent = DRILL_LABELS[type];
-      b.className = 'chip' + (i === state.typeIndex ? ' active' : '');
+      b.className = 'step';
+      b.innerHTML = `<span class="step-n">${i + 1}</span><span class="step-name">${DRILL_SHORT[type]}</span>`;
       b.onclick = () => {
         state.typeIndex = i;
         state.groupN = 0;
@@ -191,6 +191,14 @@ const App = (() => {
         nextQuestion();
       };
       el.typeSwitch.appendChild(b);
+    });
+    updateStepper();
+  }
+
+  function updateStepper() {
+    [...el.typeSwitch.children].forEach((c, i) => {
+      c.classList.toggle('active', i === state.typeIndex);
+      c.classList.toggle('done', i < state.typeIndex);
     });
   }
 
@@ -205,9 +213,8 @@ const App = (() => {
     } else {
       el.groupAvg.hidden = true;
     }
-    // 高亮当前题型 chip
-    [...el.typeSwitch.children].forEach((c, i) =>
-      c.classList.toggle('active', i === state.typeIndex));
+    // 更新阶梯步骤高亮
+    updateStepper();
   }
 
   function flashToast(msg) {

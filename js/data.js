@@ -86,3 +86,12 @@ const DRILL_LABELS = {
   transformation:'转换',
   response:      '回应',
 };
+
+// 阶梯步骤用的短标签
+const DRILL_SHORT = {
+  chunk_fixed:   '闪认',
+  substitution:  '替换',
+  expansion:     '扩展',
+  transformation:'转换',
+  response:      '回应',
+};
