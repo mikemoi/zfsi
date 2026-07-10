@@ -48,9 +48,9 @@ Service Worker 是 cache-first。改了题库/代码后，把 `sw.js` 里的 `CA
 
 ## 路线图（全部完成）
 
-1. ✅ PG 建表 SQL —— `server/sql/schema.sql`
+1. ✅ SQLite 建表 —— `server/sql/schema.sql`（单人、轻量、一个文件）
 2. ✅ 纯前端 PWA，当天能练（含 PIN 锁屏、统计/趋势、场景里程碑、设置）
-3. ✅ Node/Fastify 薄后端 + `pg`：记录/SRS 上 PG；前端 attempts 离线队列同步
+3. ✅ Node/Fastify 薄后端 + `node:sqlite`：记录/SRS 落 SQLite；前端 attempts 离线队列同步
 4. ✅ 接 OpenRouter：AI 判定 + 题库生成 + STT + TTS（预生成缓存）
 
 前端**渐进增强**：不连后端就是纯本地（离线、即时）；连上后端额外获得 AI 判定回应题、AI 语音、durable 记录、跨设备、题库生成。
@@ -59,23 +59,23 @@ Service Worker 是 cache-first。改了题库/代码后，把 `sw.js` 里的 `CA
 
 ## 后端部署（server/）
 
-### 1. 建库 + 建表 + 灌题
-```bash
-# 在你已有的 PG 上建一个专用库
-createdb zfsi           # 或在 1Panel 里新建数据库 zfsi
+轻量：**SQLite 一个文件**（Node 24 内置 `node:sqlite`，零原生依赖），不用装/连数据库。
 
+### 1. 建表 + 灌题
+```bash
 cd server
-cp .env.example .env    # 填 DATABASE_URL / APP_PIN / AUTH_SECRET / OPENROUTER_API_KEY
-npm install
-npm run migrate         # 建表（执行 sql/schema.sql）
-npm run seed            # 把内置 44 题 + 场景灌进 PG
+cp .env.example .env    # 填 APP_PIN / AUTH_SECRET / OPENROUTER_API_KEY（DB_FILE 默认 ./data/zfsi.db）
+npm install             # 只有 fastify + cors + dotenv，无数据库驱动
+npm run migrate         # 建表（打开 db 即建，幂等）
+npm run seed            # 把内置 44 题 + 场景灌进 SQLite
 ```
 
 ### 2. 起服务
 ```bash
-npm start               # 默认 :8787
+npm start               # 默认 :8787（脚本已带 --experimental-sqlite）
 ```
 生产上用 pm2 / systemd 常驻，前面挂 Nginx 反代 + HTTPS。`.env` 里 `CORS_ORIGIN` 设成你前端的域名。
+**备份 = 拷 `data/zfsi.db` 一个文件**；迁移直接搬这个文件。
 
 ### 3. 前端连接
 打开 App → 设置 → 「后端」→ 填 `https://你的域名:8787` + PIN → 连接。
@@ -99,5 +99,5 @@ npm start               # 默认 :8787
 
 ## 验证情况
 - 前端：PIN 全流程、三级判定、SM-2、20 题自动切、统计三图、场景卡、设置、本地/后端两种模式，均在浏览器实测通过。
-- 后端：服务器启动、PIN 鉴权门（401/token）、AI 路由 503 守卫，实测通过；建表 / 灌题 / attempts+SM-2 upsert / 抽题排序 SQL 用内存版 Postgres 实跑通过。`jsonb ||`、`FILTER`、`date_trunc` 是标准 PG 特性（内存版不实现，真实 PG 正常）。
+- 后端（SQLite）：migrate/seed、/auth（401/token）、/session（accepted 正确解析）、/attempts（SM-2 upsert：对→次日、错→60秒）、/stats（CASE 聚合 + strftime 分组）、AI 路由 503 守卫，全部本地实测通过。
 - 未在真机验证：AI 判定/生成/STT/TTS 的实际调用（需要你的 OpenRouter key）。填好 key 即可用。

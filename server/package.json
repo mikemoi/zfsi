@@ -2,17 +2,16 @@
   "name": "zfsi-server",
   "version": "1.0.0",
   "type": "module",
-  "description": "西语 Drill 薄后端：Fastify + pg + OpenRouter",
+  "description": "西语 Drill 薄后端：Fastify + SQLite(node:sqlite) + OpenRouter",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "migrate": "node migrate.js",
-    "seed": "node seed.js"
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch server.js",
+    "migrate": "node --experimental-sqlite migrate.js",
+    "seed": "node --experimental-sqlite seed.js"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",
     "dotenv": "^16.4.5",
-    "fastify": "^5.1.0",
-    "pg": "^8.13.1"
+    "fastify": "^5.1.0"
   }
 }

@@ -1,14 +1,19 @@
-import pg from 'pg';
+import { DatabaseSync } from 'node:sqlite';
+import fs from 'node:fs';
+import path from 'node:path';
 
-// 单例连接池；DATABASE_URL 从 .env 读
-export const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 5,
-});
+// 一个文件搞定；DB_FILE 可配，默认 ./data/zfsi.db
+const file = process.env.DB_FILE || './data/zfsi.db';
+fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
 
-export const q = (text, params) => pool.query(text, params);
+export const db = new DatabaseSync(file);
+db.exec('PRAGMA journal_mode = WAL;');
+db.exec('PRAGMA foreign_keys = ON;');
 
-export async function ping() {
-  const r = await q('SELECT 1 AS ok');
-  return r.rows[0].ok === 1;
+// 打开即确保建表（幂等）
+const schema = fs.readFileSync(new URL('./sql/schema.sql', import.meta.url), 'utf8');
+db.exec(schema);
+
+export function ping() {
+  try { return db.prepare('SELECT 1 AS ok').get().ok === 1; } catch { return false; }
 }
