@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import * as repo from './repo.js';
 
 // 复用前端内置题库：把 js/data.js 当脚本求值，取出 DECK
-const code = fs.readFileSync(new URL('../js/data.js', import.meta.url), 'utf8') + '\n; return { DECK };';
+// DECK_FILE 可覆盖路径（容器里前端在 /app/public/js/data.js）
+const deckPath = process.env.DECK_FILE ? new URL('file://' + process.env.DECK_FILE) : new URL('../js/data.js', import.meta.url);
+const code = fs.readFileSync(deckPath, 'utf8') + '\n; return { DECK };';
 const { DECK } = new Function(code)();
 
 const SCENARIOS = [

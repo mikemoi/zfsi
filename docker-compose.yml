@@ -1,0 +1,14 @@
+services:
+  zfsi:
+    build: .
+    container_name: zfsi
+    restart: unless-stopped
+    environment:
+      APP_PIN: "${APP_PIN:-1234}"
+      AUTH_SECRET: "${AUTH_SECRET:-change-me-please}"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+      CORS_ORIGIN: "*"
+    volumes:
+      - ./data:/app/data           # SQLite 文件持久化到宿主 ./data
+    ports:
+      - "127.0.0.1:1050:8787"      # 只绑本机；由 OpenResty 反代 HTTPS 子域名

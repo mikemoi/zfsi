@@ -9,6 +9,12 @@ import * as ai from './ai.js';
 const app = Fastify({ logger: true, bodyLimit: 15 * 1024 * 1024 });
 await app.register(cors, { origin: process.env.CORS_ORIGIN || '*' });
 
+// 容器里由本进程直接服务静态前端（STATIC_DIR 指向 public）；dev 下不设此变量、用别的静态服务器
+if (process.env.STATIC_DIR) {
+  const fastifyStatic = (await import('@fastify/static')).default;
+  await app.register(fastifyStatic, { root: process.env.STATIC_DIR, index: ['index.html'] });
+}
+
 // ---------- 鉴权：PIN → token ----------
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const expectedToken = () => sha((process.env.APP_PIN || '') + '::' + (process.env.AUTH_SECRET || ''));
