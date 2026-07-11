@@ -1,111 +1,139 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1f6f5c">
-  <title>西语 Drill</title>
+  <meta name="theme-color" content="#f6f5f1">
+  <title>ZFSI · 西语反应训练</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
-  <!-- ===== PIN 锁屏 ===== -->
   <div id="lockScreen" class="lockscreen" hidden>
     <div class="lockbox">
-      <div class="lockicon">🔒</div>
+      <div class="lockmark" aria-hidden="true">Z</div>
       <h2 id="lockTitle">输入 PIN 解锁</h2>
       <p id="lockHint" class="lockhint"></p>
-      <input id="pinInput" type="password" inputmode="numeric" autocomplete="off"
-             placeholder="PIN" class="pinfield" />
-      <input id="pinConfirm" type="password" inputmode="numeric" autocomplete="off"
-             placeholder="再输一遍" class="pinfield" hidden />
-      <div id="pinError" class="pinerror"></div>
+      <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" class="pinfield">
+      <input id="pinConfirm" type="password" inputmode="numeric" autocomplete="off" placeholder="再输一遍" class="pinfield" hidden>
+      <div id="pinError" class="pinerror" aria-live="polite"></div>
       <button id="pinSubmit" class="primary wide">进入</button>
     </div>
   </div>
 
-  <!-- ===== 顶栏 + 视图导航 ===== -->
-  <header class="topbar">
-    <div class="brand">西语 Drill</div>
-    <nav class="viewnav">
-      <button class="navbtn active" data-view="drill">练习</button>
-      <button class="navbtn" data-view="stats">统计</button>
-      <button class="navbtn" data-view="settings">设置</button>
-    </nav>
-    <span id="todayCount" class="today">今天 0 题</span>
-  </header>
-
-  <!-- ===== 练习视图 ===== -->
-  <section id="view-drill" class="view">
-    <div class="ladder">
-      <div class="ladder-cap">顺着练 · 每满 20 题自动进入下一关　（也可点某关直接跳）</div>
-      <nav id="typeSwitch" class="typeswitch"></nav>
-    </div>
-
-    <main class="card">
-      <div class="badges">
-        <span id="typeBadge" class="badge type">替换</span>
-        <span id="levelBadge" class="badge level">A1</span>
-        <span id="tagBadge" class="badge tag" hidden>最小对立</span>
+  <div id="appShell" class="app-shell">
+    <header id="appHeader" class="app-header">
+      <div>
+        <div class="eyebrow">ZFSI</div>
+        <div class="brand">西语反应训练</div>
       </div>
+      <span id="todayCount" class="today">今天 0 题</span>
+    </header>
 
-      <p id="context" class="context"></p>
-      <p id="prompt" class="prompt">…</p>
+    <main class="app-main">
+      <section id="view-practice" class="view">
+        <div id="practiceHome" class="practice-home">
+          <p id="greeting" class="greeting">今天也慢慢来</p>
+          <h1>不用选择，直接练习。</h1>
+          <p class="lead">系统会从当前阶段和到期内容中安排一组练习。</p>
 
-      <div class="inputRow">
-        <input id="answer" type="text" autocomplete="off" autocapitalize="off"
-               autocorrect="off" spellcheck="false"
-               lang="es" placeholder="用西班牙语打出完整句子…" />
-        <button id="micBtn" class="mic" title="语音作答（es-ES）" aria-label="语音作答">🎤</button>
-        <button id="submitBtn" class="primary">作答</button>
-      </div>
-      <p id="speedHint" class="speedHint" hidden>加快速度，不要想太久。</p>
+          <section class="recommend-card" aria-labelledby="recommendTitle">
+            <div class="recommend-topline">
+              <span>今天建议</span>
+              <span id="homeProgress">20 题</span>
+            </div>
+            <h2 id="recommendTitle">继续练习「固定块闪认」</h2>
+            <p id="recommendMeta">约 12 分钟 · 专注完成一组</p>
+            <button id="startPracticeBtn" class="primary hero-action">开始练习 <span aria-hidden="true">→</span></button>
+          </section>
 
-      <div id="feedback" class="feedback" hidden>
-        <div id="verdict" class="verdict"></div>
-        <div class="answerLine">
-          <span class="label">标准答案</span>
-          <span id="canonical" class="canonical"></span>
-          <button id="listenBtn" class="ghost" title="朗读">🔊</button>
+          <div class="home-summary">
+            <div><span id="homeToday">0</span><small>今天完成</small></div>
+            <div><span id="homeDue">—</span><small>累计练习</small></div>
+            <div><span id="homeAvg">—</span><small>平均反应</small></div>
+          </div>
+          <button id="chooseTypeBtn" class="text-action">选择训练阶段</button>
         </div>
-        <div id="note" class="note" hidden></div>
-        <div class="fbActions">
-          <button id="actuallyRightBtn" class="ghost" hidden>我其实对了 →加入可接受</button>
-          <button id="nextBtn" class="primary">下一题</button>
+
+        <div id="practiceSession" class="session" hidden>
+          <header class="session-header">
+            <button id="exitSessionBtn" class="icon-button" aria-label="退出训练">×</button>
+            <button id="sessionTypeBtn" class="session-title">
+              <strong id="typeBadge">固定块闪认</strong>
+              <span id="levelBadge">A1</span>
+            </button>
+            <span id="groupCount" class="session-count">0 / 20</span>
+          </header>
+          <div class="progress-track" aria-hidden="true"><div id="progressFill"></div></div>
+
+          <section class="question-area">
+            <div class="question-meta">
+              <span id="questionLabel">请用西班牙语回答</span>
+              <span id="tagBadge" class="subtle-tag" hidden>最小对立</span>
+            </div>
+            <p id="context" class="context"></p>
+            <p id="prompt" class="prompt" lang="es">…</p>
+          </section>
+
+          <section id="answerArea" class="answer-area">
+            <label for="answer">你的回答</label>
+            <div class="answer-box">
+              <textarea id="answer" rows="2" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" lang="es" placeholder="用西班牙语说出完整句子…"></textarea>
+              <button id="micBtn" class="mic" title="语音作答（es-ES）" aria-label="语音作答">●</button>
+            </div>
+            <p id="speedHint" class="speed-hint" hidden>不要翻译，直接说出来</p>
+          </section>
+
+          <section id="feedback" class="feedback" hidden aria-live="polite">
+            <div id="verdict" class="verdict"></div>
+            <div class="answer-line">
+              <span class="answer-label">正确表达</span>
+              <div><span id="canonical" class="canonical" lang="es"></span><button id="listenBtn" class="listen" aria-label="朗读答案">🔊</button></div>
+            </div>
+            <div id="note" class="note" hidden></div>
+            <button id="actuallyRightBtn" class="appeal" hidden>判定有问题？将我的答案设为可接受</button>
+            <div id="responseTime" class="response-time"></div>
+          </section>
+
+          <div class="session-action">
+            <button id="submitBtn" class="primary wide">检查</button>
+          </div>
+          <span id="groupAvg" hidden></span>
         </div>
-      </div>
+      </section>
+
+      <section id="view-review" class="view" hidden>
+        <div class="page-heading"><span class="eyebrow">REVIEW</span><h1>复习</h1><p>看清薄弱处，然后继续练。</p></div>
+        <div id="reviewActions" class="review-actions"></div>
+        <h2 class="section-title">常用场景</h2>
+        <div id="scenariosBody" class="panel"></div>
+      </section>
+
+      <section id="view-profile" class="view" hidden>
+        <div class="page-heading"><span class="eyebrow">MY PROGRESS</span><h1>我的</h1><p>趋势只用来帮助调整，不制造压力。</p></div>
+        <div id="statsBody" class="panel"></div>
+        <h2 class="section-title">设置</h2>
+        <div id="settingsBody" class="panel"></div>
+      </section>
     </main>
 
-    <footer class="statusbar">
-      <span id="groupCount">本组 0/20</span>
-      <span id="groupAvg" hidden></span>
-    </footer>
-  </section>
+    <nav id="bottomNav" class="bottom-nav" aria-label="主导航">
+      <button class="navbtn active" data-view="practice"><span class="nav-icon">○</span>练习</button>
+      <button class="navbtn" data-view="review"><span class="nav-icon">↺</span>复习</button>
+      <button class="navbtn" data-view="profile"><span class="nav-icon">⌁</span>我的</button>
+    </nav>
+  </div>
 
-  <!-- ===== 统计视图 ===== -->
-  <section id="view-stats" class="view" hidden>
-    <div id="statsBody" class="panel"></div>
-    <h3 class="stat-h">场景里程碑</h3>
-    <div id="scenariosBody" class="panel"></div>
-  </section>
+  <dialog id="typeDialog" class="type-dialog">
+    <div class="dialog-handle"></div>
+    <div class="dialog-head"><div><small>训练路径</small><h2>选择当前阶段</h2></div><button id="closeTypeDialog" class="icon-button" aria-label="关闭">×</button></div>
+    <nav id="typeSwitch" class="type-list"></nav>
+  </dialog>
 
-  <!-- ===== 设置视图 ===== -->
-  <section id="view-settings" class="view" hidden>
-    <div id="settingsBody" class="panel"></div>
-  </section>
-
-  <script src="js/data.js"></script>
-  <script src="js/scenarios.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/judge.js"></script>
-  <script src="js/srs.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/stats.js"></script>
-  <script src="js/settings.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js"></script><script src="js/scenarios.js"></script><script src="js/api.js"></script>
+  <script src="js/judge.js"></script><script src="js/srs.js"></script><script src="js/store.js"></script>
+  <script src="js/stats.js"></script><script src="js/settings.js"></script><script src="js/auth.js"></script><script src="js/app.js"></script>
 </body>
 </html>
