@@ -1,5 +1,5 @@
 /* Service Worker —— 缓存 App 外壳 + 题库，首次加载后完全离线可练 */
-const CACHE = 'zfsi-v5';
+const CACHE = 'zfsi-v6';
 const ASSETS = [
   './',
   './index.html',

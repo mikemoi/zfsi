@@ -90,8 +90,16 @@ const Settings = (() => {
       <div class="set-group">
         <div class="set-name">同步状态</div>
         <div id="beStatus" class="be-status"></div>
-        <div class="set-btns" id="beActions" hidden>
-          <button id="btnGen" class="ghost">生成新题（当前题型）</button>
+        <div id="beActions" hidden>
+          <div class="set-desc">用 AI 生成新题，加入指定分类：</div>
+          <div class="set-pin">
+            <select id="genType" class="set-num wide">
+              ${DRILL_ORDER.map(t => `<option value="${t}">${DRILL_LABELS[t]}</option>`).join('')}
+            </select>
+            <input id="genCount" type="number" min="3" max="30" value="10" class="set-num">
+            <button id="btnGen" class="ghost">生成并加入</button>
+          </div>
+          <div id="aiOff" class="set-desc" hidden>⚠️ 服务器未配置 OpenRouter key，AI 生成未开启。</div>
         </div>
         <div id="beMsg" class="set-desc"></div>
       </div>
@@ -144,6 +152,8 @@ const Settings = (() => {
       beStatus.textContent = pend ? `已连服务器 · 待同步 ${pend} 条` : '已连服务器 · 记录已同步';
       beStatus.className = 'be-status on';
       beActions.hidden = false;
+      // 探测 AI 是否开启（没配 key 就提示）
+      API.probe().then(p => { if (!p.ai) container.querySelector('#aiOff').hidden = false; }).catch(() => {});
       // 有后端时 PIN 由服务器管理，不在此改
     } else {
       beStatus.textContent = '本地模式（未连服务器，记录只存本机）';
@@ -154,12 +164,18 @@ const Settings = (() => {
 
     const genBtn = container.querySelector('#btnGen');
     if (genBtn) genBtn.onclick = async () => {
-      beMsg.style.color='var(--muted)'; beMsg.textContent='生成中…（约十几秒）';
+      const type = container.querySelector('#genType').value;
+      const count = Math.max(3, Math.min(30, +container.querySelector('#genCount').value || 10));
+      const label = DRILL_LABELS[type] || type;
+      genBtn.disabled = true;
+      beMsg.style.color='var(--muted)'; beMsg.textContent=`正在为「${label}」生成 ${count} 题…（约十几秒）`;
       try {
-        const type = (window.App && App.currentTypeName && App.currentTypeName()) || 'substitution';
-        const r = await API.generate(type, 'A2', 10);
-        beMsg.textContent = `已生成并入库 ${r.inserted} 题（${type}）。`; beMsg.style.color='var(--ok)';
-      } catch (e) { beMsg.textContent = '生成失败：' + e.message; beMsg.style.color='var(--bad)'; }
+        const r = await API.generate(type, 'A2', count);
+        beMsg.textContent = `✓ 已加入「${label}」${r.inserted} 题。`; beMsg.style.color='var(--ok)';
+      } catch (e) {
+        beMsg.textContent = /503/.test(e.message) ? '服务器未配置 OpenRouter key，AI 生成未开启。' : ('生成失败：' + e.message);
+        beMsg.style.color='var(--bad)';
+      } finally { genBtn.disabled = false; }
     };
 
     const pinBtn = container.querySelector('#btnPin');
