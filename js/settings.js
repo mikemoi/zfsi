@@ -88,22 +88,15 @@ const Settings = (() => {
       </div>
 
       <div class="set-group">
-        <div class="set-name">后端（可选）</div>
-        <div class="set-desc">连上后端即获得：AI 判定回应题、AI 语音、durable 记录、跨设备、题库生成。不连则保持纯本地。</div>
+        <div class="set-name">同步状态</div>
         <div id="beStatus" class="be-status"></div>
-        <div class="set-pin" id="beConnect">
-          <input id="beUrl" type="text" placeholder="https://你的域名或IP:8787" class="set-num wide">
-          <input id="bePin" type="password" inputmode="numeric" placeholder="PIN" class="set-num">
-          <button id="btnConnect" class="ghost">连接</button>
-        </div>
-        <div class="set-btns" id="beActions" style="margin-top:10px">
+        <div class="set-btns" id="beActions" hidden>
           <button id="btnGen" class="ghost">生成新题（当前题型）</button>
-          <button id="btnDisc" class="ghost danger">断开</button>
         </div>
         <div id="beMsg" class="set-desc"></div>
       </div>
 
-      <div class="set-group">
+      <div class="set-group" id="pinGroup" hidden>
         <div class="set-name">修改 PIN</div>
         <div class="set-pin">
           <input id="pinOld" type="password" inputmode="numeric" placeholder="原 PIN" class="set-num wide">
@@ -141,29 +134,26 @@ const Settings = (() => {
         resetProgress(); location.reload();
       }
     };
-    // ---- 后端 ----
+    // ---- 同步状态（自动，无需连接）----
     const beStatus = container.querySelector('#beStatus');
-    const beConnect = container.querySelector('#beConnect');
     const beActions = container.querySelector('#beActions');
     const beMsg = container.querySelector('#beMsg');
-    function refreshBE() {
-      const on = typeof API !== 'undefined' && API.configured();
-      beStatus.textContent = on ? `已连接：${API.cfg().url}　（待同步 ${API.queueLen()} 条）` : '未连接（纯本地模式）';
-      beStatus.className = 'be-status ' + (on ? 'on' : '');
-      beConnect.style.display = on ? 'none' : 'flex';
-      beActions.style.display = on ? 'flex' : 'none';
+    const on = typeof API !== 'undefined' && API.configured();
+    if (on) {
+      const pend = API.queueLen();
+      beStatus.textContent = pend ? `已连服务器 · 待同步 ${pend} 条` : '已连服务器 · 记录已同步';
+      beStatus.className = 'be-status on';
+      beActions.hidden = false;
+      // 有后端时 PIN 由服务器管理，不在此改
+    } else {
+      beStatus.textContent = '本地模式（未连服务器，记录只存本机）';
+      beStatus.className = 'be-status';
+      // 纯本地才允许改本地 PIN
+      container.querySelector('#pinGroup').hidden = false;
     }
-    refreshBE();
-    container.querySelector('#btnConnect').onclick = async () => {
-      const url = container.querySelector('#beUrl').value.trim();
-      const pin = container.querySelector('#bePin').value.trim();
-      if (!url || !pin) { beMsg.textContent = '填写地址和 PIN。'; return; }
-      beMsg.textContent = '连接中…';
-      try { await API.connect(url, pin); await API.flush(); beMsg.textContent = '已连接。'; beMsg.style.color='var(--ok)'; refreshBE(); }
-      catch (e) { beMsg.textContent = '连接失败：' + e.message; beMsg.style.color='var(--bad)'; }
-    };
-    container.querySelector('#btnDisc').onclick = () => { API.disconnect(); beMsg.textContent='已断开。'; refreshBE(); };
-    container.querySelector('#btnGen').onclick = async () => {
+
+    const genBtn = container.querySelector('#btnGen');
+    if (genBtn) genBtn.onclick = async () => {
       beMsg.style.color='var(--muted)'; beMsg.textContent='生成中…（约十几秒）';
       try {
         const type = (window.App && App.currentTypeName && App.currentTypeName()) || 'substitution';
@@ -172,7 +162,8 @@ const Settings = (() => {
       } catch (e) { beMsg.textContent = '生成失败：' + e.message; beMsg.style.color='var(--bad)'; }
     };
 
-    container.querySelector('#btnPin').onclick = async () => {
+    const pinBtn = container.querySelector('#btnPin');
+    if (pinBtn) pinBtn.onclick = async () => {
       const oldV = container.querySelector('#pinOld').value.trim();
       const newV = container.querySelector('#pinNew').value.trim();
       const msg = container.querySelector('#pinMsg');

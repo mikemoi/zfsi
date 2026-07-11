@@ -52,9 +52,25 @@ const Auth = (() => {
 
   async function submit(onUnlock) {
     const mode = el.screen.dataset.mode;
+    const backend = el.screen.dataset.backend === '1';
     const pin = el.pin.value.trim();
     if (!/^\d{4,8}$/.test(pin)) { el.error.textContent = '请输入 4–8 位数字。'; return; }
 
+    // 有后端：PIN 由服务器校验，成功即拿到 token（记录/AI 自动可用），并存本地哈希供离线解锁
+    if (backend) {
+      el.error.textContent = '验证中…';
+      try {
+        await API.connect(pin);
+        await setPin(pin);
+        API.flush();
+        markUnlocked(); hide(); onUnlock();
+      } catch {
+        el.error.textContent = 'PIN 不对，再试一次。'; el.pin.value = ''; el.pin.focus();
+      }
+      return;
+    }
+
+    // 无后端（纯本地/离线）：本地哈希校验
     if (mode === 'set') {
       if (pin !== el.confirm.value.trim()) { el.error.textContent = '两次输入不一致。'; el.confirm.value=''; el.confirm.focus(); return; }
       await setPin(pin);
@@ -73,7 +89,7 @@ const Auth = (() => {
     return { ok:true };
   }
 
-  function gate(onUnlock) {
+  async function gate(onUnlock) {
     el.screen = q('lockScreen');
     el.title = q('lockTitle');
     el.hint = q('lockHint');
@@ -84,7 +100,11 @@ const Auth = (() => {
 
     if (isUnlocked()) { hide(); onUnlock(); return; }
 
-    show(hasPin() ? 'enter' : 'set');
+    // 探测同源后端：有后端 → PIN 由服务器定，总是“输入 PIN”；无后端 → 本地设/输
+    const backend = (typeof API !== 'undefined') ? (await API.probe()).ok : false;
+    el.screen.dataset.backend = backend ? '1' : '';
+    show(backend ? 'enter' : (hasPin() ? 'enter' : 'set'));
+
     el.submit.onclick = () => submit(onUnlock);
     const onEnter = e => { if (e.key === 'Enter') { e.preventDefault(); submit(onUnlock); } };
     el.pin.addEventListener('keydown', onEnter);
