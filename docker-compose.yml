@@ -11,4 +11,4 @@ services:
     volumes:
       - ./data:/app/data           # SQLite 文件持久化到宿主 ./data
     ports:
-      - "127.0.0.1:1050:8787"      # 只绑本机；由 OpenResty 反代 HTTPS 子域名
+      - "1050:8787"                # 对外开放，可用 http://服务器IP:1050 直接访问

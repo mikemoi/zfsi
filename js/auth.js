@@ -12,8 +12,14 @@ const Auth = (() => {
   const SALT = 'zfsi::v1::';
 
   async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    // http://IP 这类不安全上下文没有 crypto.subtle，用兜底哈希（PIN 只是弱门禁）
+    if (globalThis.crypto && globalThis.crypto.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return 'fnv_' + (h >>> 0).toString(16);
   }
 
   function hasPin() { return !!localStorage.getItem(K_PIN); }
